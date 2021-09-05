@@ -173,6 +173,10 @@
               {
                 "path": "interceptors",
                 "title": "Interceptors"
+              },
+              {
+                "path": "uploading-files",
+                "title": "Uploading files"
               }
             ]
           },
