@@ -7,17 +7,16 @@ using System.Text;
 using System.Threading.Tasks;
 using Nuke.Common;
 using Nuke.Common.IO;
-using Nuke.Common.Tooling;
 using Nuke.Common.Tools.DotNet;
 using static Nuke.Common.Tools.DotNet.DotNetTasks;
 using static Nuke.Common.Tools.Git.GitTasks;
 using static Helpers;
 
-partial class Build : NukeBuild
+partial class Build
 {
-    private readonly string _shippedApiFile = "PublicAPI.Shipped.txt";
-    private readonly string _unshippedApiFile = "PublicAPI.Unshipped.txt";
-    private readonly string _removedApiPrefix = "*REMOVED*";
+    readonly string _shippedApiFile = "PublicAPI.Shipped.txt";
+    readonly string _unshippedApiFile = "PublicAPI.Unshipped.txt";
+    readonly string _removedApiPrefix = "*REMOVED*";
 
     [Parameter] readonly string From;
     [Parameter] readonly string To;
@@ -27,8 +26,8 @@ partial class Build : NukeBuild
         .DependsOn(Restore)
         .Executes(() =>
         {
-            Helpers.TryDelete(PublicApiSolutionFile);
-            
+            TryDelete(PublicApiSolutionFile);
+
             DotNetBuildSonarSolution(
                 PublicApiSolutionFile,
                 include: file =>
@@ -43,7 +42,7 @@ partial class Build : NukeBuild
         });
 
     Target AddUnshippedApi => _ => _
-        .DependsOn(Restore) 
+        .DependsOn(Restore)
         .Executes(() =>
         {
             TryDelete(PublicApiSolutionFile);
@@ -54,11 +53,8 @@ partial class Build : NukeBuild
                     !Path.GetFileNameWithoutExtension(file)
                         .EndsWith("tests", StringComparison.OrdinalIgnoreCase));
 
-            // new we restore our local dotnet tools including dotnet-format
-            DotNetToolRestore(c => c.SetProcessWorkingDirectory(RootDirectory));
-
             // last we run the actual dotnet format command.
-            DotNet($@"format ""{PublicApiSolutionFile}"" --fix-analyzers warn --diagnostics RS0016", workingDirectory: RootDirectory);
+            DotNet($@"format ""{PublicApiSolutionFile}"" analyzers --diagnostics=RS0016", workingDirectory: RootDirectory);
         });
 
     Target DiffShippedApi => _ => _
@@ -183,7 +179,7 @@ partial class Build : NukeBuild
             }
         });
 
-    private static async Task<List<string>> GetNonEmptyLinesAsync(string filepath)
+    static async Task<List<string>> GetNonEmptyLinesAsync(string filepath)
     {
         var lines = await File.ReadAllLinesAsync(filepath);
 
